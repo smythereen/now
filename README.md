@@ -68,6 +68,50 @@ Output:
 - **Indirect:** none.
 - **Makefile `-l` list:** empty, which matches the code.
 
+## Using this unit from C++
+
+This unit can be used from **C and C++**. Keep the unit's `.c` implementation
+files compiled as C with `gcc`/`CC`; compile your C++ client with `g++`/`CXX`
+and use `g++` for the final mixed-language link. There is no need to rebuild
+the C library as C++.
+
+Base's shared rules recognize C++ product sources named `.cc` and compile
+them with `CXX` and `CXXFLAGS` (for example `make CXX=g++`). `CPP` names
+the preprocessor, not the C++ compiler. The commands below assume the
+headers and libraries have already been installed into `$HOME/cmn` and
+`$HOME/lib`. GNU C++17 on Linux x86-64 is the example target; GNU extensions
+in the shared types/headers are intentional.
+
+`now.h` and its nested `common.h` provide their own `extern "C"` guards.
+`tm_t` is an anonymous-struct typedef, so use `tm_t fields{}` in C++, not
+`struct tm_t`. Its member is a `struct tm` named `tm`; no compatibility
+define or user linkage wrapper is needed. For text parsing/formatting,
+use mutable arrays for parameters declared `char *`, for example
+`char input[] = "2026-11-05 21:59:30.25";` before `Micro_From_String`.
+
+Save as `use_now.cc`:
+
+```cpp
+#include <now.h>
+int main() {
+    u64 stamp = Micro_Now();
+    tm_t fields{};
+    Micro_To_GMT(stamp, &fields);
+    return Micro_From_Timeval(Micro_To_Timeval(stamp)) == stamp ? 0 : 1;
+}
+```
+
+```sh
+g++ -std=gnu++17 -I"$HOME/cmn" use_now.cc -L"$HOME/lib" -lnow -o use_now
+./use_now
+```
+
+The C++ example above was compiled, linked and run on Linux x86-64 using
+Clang 22.1.8 via `zig c++ -std=gnu++17 -nostdlib++`, with GCC 14.2-built C
+objects where needed. It uses no C++ standard-library runtime. The `g++`
+command is the GNU-toolchain form; that driver was not available for this
+smoke check. This is not an exhaustive API or concurrency test.
+
 ## License
 
 The original files are offered under `Apache-2.0 OR GPL-2.0-or-later`;
