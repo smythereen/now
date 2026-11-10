@@ -7,6 +7,8 @@ A single integer timestamp is easy to store in shared memory or a
 record, easy to compare, and keeps sub-second precision that `time_t`
 lacks.
 
+It builds with the [base](https://github.com/smythereen/base) unit make system, which handles C, C++, and Rust, including large mixed-language projects.
+
 ## API (`now.h`)
 
 | Function | Purpose |
